@@ -1,15 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Heart } from "lucide-react";
+import { Heart, Settings } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { ConsentDialog } from "../components/ConsentDialog";
+import { SettingsDialog } from "../components/SettingsDialog";
+import { getAnalyticsConsent, setAnalyticsConsent, initializeAnalytics } from "../../lib/analytics";
 
 interface LandingProps {
   onBegin: () => void;
 }
 
 export const Landing: React.FC<LandingProps> = ({ onBegin }) => {
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+
+  useEffect(() => {
+    // Check if user has already made a consent choice
+    const consent = getAnalyticsConsent();
+    if (consent === null) {
+      // Show consent dialog after a brief delay
+      const timer = setTimeout(() => setShowConsentDialog(true), 1000);
+      return () => clearTimeout(timer);
+    } else if (consent === true) {
+      // User previously accepted, initialize analytics
+      initializeAnalytics();
+    }
+  }, []);
+
+  const handleAcceptConsent = () => {
+    setAnalyticsConsent(true);
+    setShowConsentDialog(false);
+  };
+
+  const handleDeclineConsent = () => {
+    setAnalyticsConsent(false);
+    setShowConsentDialog(false);
+  };
   return (
     <div className="relative w-full h-full min-h-screen bg-linear-to-b from-pink-200 to-orange-50 flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+      {/* Settings Button - Top Right */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={() => setShowSettingsDialog(true)}
+        className="absolute top-6 right-6 z-20 p-3 bg-white/40 hover:bg-white/60 backdrop-blur-md rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+        aria-label="Open settings"
+      >
+        <Settings
+          size={20}
+          className="text-gray-700 group-hover:text-gray-900 group-hover:rotate-45 transition-all duration-300"
+        />
+      </motion.button>
+
       {/* Background Floating Heart Animation */}
       <motion.div
         animate={{
@@ -59,6 +102,16 @@ export const Landing: React.FC<LandingProps> = ({ onBegin }) => {
           </Button>
         </motion.div>
       </div>
+
+      {/* Consent Dialog */}
+      <ConsentDialog
+        isOpen={showConsentDialog}
+        onAccept={handleAcceptConsent}
+        onDecline={handleDeclineConsent}
+      />
+
+      {/* Settings Dialog */}
+      <SettingsDialog isOpen={showSettingsDialog} onClose={() => setShowSettingsDialog(false)} />
     </div>
   );
 };
