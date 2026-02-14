@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { AnimatePresence } from "motion/react";
 import { Landing } from "./screens/Landing";
 import { RelationshipSelection } from "./screens/RelationshipSelection";
 import { StoryScene } from "./screens/StoryScene";
@@ -21,6 +22,10 @@ import {
   trackEndingReached,
 } from "../lib/analytics";
 import { ScoreBalanceTool } from "../dev/ScoreBalanceTool";
+import { AudioControls } from "./components/AudioControls";
+import { createAudioManager } from "../lib/audioManager";
+import { AudioManager, AudioTheme } from "../types/audio";
+import { trackAudioEnabled, trackAudioMuted, trackAudioUnmuted } from "../lib/analytics";
 
 // Step can be a SceneId or one of the special app states
 type Step = "landing" | "relationship" | "ending" | SceneId;
@@ -32,9 +37,44 @@ export default function App() {
   const [scores, setScores] = useState<DimensionScores>(initializeScores());
   const [showMidpointFeedback, setShowMidpointFeedback] = useState(false);
   const [midpointPhrase, setMidpointPhrase] = useState("");
+  const [midpointShown, setMidpointShown] = useState(false);
   const [dominantDimension, setDominantDimension] = useState<keyof DimensionScores>("hope");
   const [selectedPath, setSelectedPath] = useState<string>("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showDevTool, setShowDevTool] = useState(false);
+
+  // Audio state
+  const audioManagerRef = useRef<AudioManager | null>(null);
+  const [audioInitialized, setAudioInitialized] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [audioConsent, setAudioConsent] = useState<boolean | null>(null);
+
+  // Initialize audio manager
+  useEffect(() => {
+    audioManagerRef.current = createAudioManager();
+
+    // Check if audio consent was previously given
+    try {
+      const savedConsent = localStorage.getItem("audioConsent");
+      if (savedConsent !== null) {
+        setAudioConsent(savedConsent === "true");
+      }
+    } catch (error) {
+      console.warn("Failed to load audio consent:", error);
+    }
+
+    return () => {
+      if (audioManagerRef.current) {
+        audioManagerRef.current.cleanup();
+      }
+      // Clear any pending transition timeouts
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Check for dev mode access (?dev=scoring)
   useEffect(() => {
@@ -52,52 +92,95 @@ export default function App() {
   // Check if we're at scene 3 (midpoint) and show feedback
   useEffect(() => {
     const midpointScenes = ["A3", "B3", "C3"];
-    if (midpointScenes.includes(step as string)) {
+    if (midpointScenes.includes(step as string) && !midpointShown) {
       const phrase = getMidpointFeedbackPhrase(scores);
       const dimension = getDominantDimension(scores);
       setMidpointPhrase(phrase);
       setDominantDimension(dimension);
-      setShowMidpointFeedback(true);
+
+      // if (!midpointShown) {
+      //   console.log("open");
+      //   setShowMidpointFeedback(true);
+      // }
+
+      // setMidpointShown(true);
 
       // Track midpoint reached
       trackMidpointReached(selectedPath, dimension, scores);
 
       // Auto-hide after 5 seconds
-      const timer = setTimeout(() => {
-        setShowMidpointFeedback(false);
-      }, 4000);
+      // const timer = setTimeout(() => {
+      //   setShowMidpointFeedback(false);
+      // }, 4000);
 
-      return () => clearTimeout(timer);
+      // return () => clearTimeout(timer);
     }
-  }, [step, scores, selectedPath]);
+  }, [step, scores, selectedPath, midpointShown]);
 
-  const handleRelationshipSelect = (selection: string) => {
+  const handleRelationshipSelect = async (selection: string) => {
     // Map the relationship selection to the starting scene of each path
     // and initialize dimensional scores
     let pathName = "A";
+    let audioTheme: AudioTheme = "hopeful";
+
+    // Reset midpoint feedback flag for new journey
+    setMidpointShown(false);
+
     if (selection === "pathA") {
       pathName = "A";
+      audioTheme = "hopeful";
       setScores(applyChoiceScore(initializeScores(), PATH_INITIAL_SCORES.A));
       setStep("A1");
     } else if (selection === "pathB") {
       pathName = "B";
+      audioTheme = "reflective";
       setScores(applyChoiceScore(initializeScores(), PATH_INITIAL_SCORES.B));
       setStep("B1");
     } else if (selection === "pathC") {
       pathName = "C";
+      audioTheme = "melancholic";
       setScores(applyChoiceScore(initializeScores(), PATH_INITIAL_SCORES.C));
       setStep("C1");
     } else {
       // Fallback
       pathName = "A";
+      audioTheme = "hopeful";
       setScores(applyChoiceScore(initializeScores(), PATH_INITIAL_SCORES.A));
       setStep("A1");
     }
     setSelectedPath(pathName);
     trackPathSelected(pathName);
+
+    // Start audio if consent was given
+    if (audioConsent && audioManagerRef.current) {
+      try {
+        if (!audioInitialized) {
+          console.log("🎵 Initializing audio system...");
+          await audioManagerRef.current.initialize();
+          setAudioInitialized(true);
+          console.log("🎵 Audio system initialized");
+        }
+
+        console.log(`🎵 Starting audio theme: ${audioTheme}`);
+        await audioManagerRef.current.play(audioTheme);
+        setIsAudioPlaying(true);
+        trackAudioEnabled(pathName, audioTheme);
+        console.log("🎵 Audio playback started");
+      } catch (error) {
+        console.error("Failed to initialize or play audio:", error);
+      }
+    }
   };
 
   const handleSceneChoice = (nextSceneId: SceneId, choiceIndex: number) => {
+    // Prevent double-clicks during transition
+    if (isTransitioning) return;
+
+    // Check for reduced motion preference
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     // Get the current scene and apply the choice's dimensional scores
     const currentScene = STORY_DATA[step as SceneId];
     if (currentScene && currentScene.choices[choiceIndex]?.scores) {
@@ -108,80 +191,144 @@ export default function App() {
       // Track choice made
       trackChoice(step as string, choice.label, choice.scores!);
 
-      // Check if the next scene is the dynamic ending
-      if (nextSceneId === "ENDING") {
-        // Evaluate which ending the user should receive based on their dimensional scores
-        const endingId = evaluateEnding(newScores);
+      // Set transitioning state
+      setIsTransitioning(true);
 
-        // Map ending ID to result title
-        const endingTitleMap: Record<string, string> = {
-          E1: "The Brave Heart",
-          E2: "The Quiet Protector",
-          E3: "The Heart That Waits",
-          E4: "The Hopeful Believer",
-          E5: "The Lonely Companion",
-          E6: "The Open Heart",
-          E7: "The Guarded Soul",
-          E8: "The Quiet Dreamer",
-          E9: "The Growing Soul",
-          E10: "The Mirror Seeker",
-          E11: "The Forgiver",
-          E12: "The Passionate Wanderer",
-          E13: "The Peaceful One",
-          E14: "The Shadow Holder",
-          E15: "The Unnamed Heart",
-          E16: "The Heart Between Worlds",
-        };
+      // Apply transition delay (300ms for acknowledgment, reduced motion: instant)
+      const transitionDelay = prefersReducedMotion ? 0 : 300;
 
-        const endingTitle = endingTitleMap[endingId] || "The Brave Heart";
-        setResult(endingTitle);
+      transitionTimeoutRef.current = setTimeout(() => {
+        // Check if the next scene is the dynamic ending
+        if (nextSceneId === "ENDING") {
+          // Evaluate which ending the user should receive based on their dimensional scores
+          const endingId = evaluateEnding(newScores);
 
-        // Track ending reached
-        trackEndingReached(endingId, endingTitle, newScores, selectedPath);
+          // Map ending ID to result title
+          const endingTitleMap: Record<string, string> = {
+            E1: "The Brave Heart",
+            E2: "The Quiet Protector",
+            E3: "The Heart That Waits",
+            E4: "The Hopeful Believer",
+            E5: "The Lonely Companion",
+            E6: "The Open Heart",
+            E7: "The Guarded Soul",
+            E8: "The Quiet Dreamer",
+            E9: "The Growing Soul",
+            E10: "The Mirror Seeker",
+            E11: "The Forgiver",
+            E12: "The Passionate Wanderer",
+            E13: "The Peaceful One",
+            E14: "The Shadow Holder",
+            E15: "The Unnamed Heart",
+            E16: "The Heart Between Worlds",
+          };
 
-        setStep("ending");
-      } else {
-        setStep(nextSceneId);
-      }
+          const endingTitle = endingTitleMap[endingId] || "The Brave Heart";
+          setResult(endingTitle);
+
+          // Track ending reached
+          trackEndingReached(endingId, endingTitle, newScores, selectedPath);
+
+          setStep("ending");
+          setIsTransitioning(false);
+        } else {
+          setStep(nextSceneId);
+          setIsTransitioning(false);
+        }
+      }, transitionDelay);
     } else {
       // Fallback: no scores to apply, just navigate
-      if (nextSceneId === "ENDING") {
-        const endingId = evaluateEnding(scores);
-        const endingTitleMap: Record<string, string> = {
-          E1: "The Brave Heart",
-          E2: "The Quiet Protector",
-          E3: "The Heart That Waits",
-          E4: "The Hopeful Believer",
-          E5: "The Lonely Companion",
-          E6: "The Open Heart",
-          E7: "The Guarded Soul",
-          E8: "The Quiet Dreamer",
-          E9: "The Growing Soul",
-          E10: "The Mirror Seeker",
-          E11: "The Forgiver",
-          E12: "The Passionate Wanderer",
-          E13: "The Peaceful One",
-          E14: "The Shadow Holder",
-          E15: "The Unnamed Heart",
-          E16: "The Heart Between Worlds",
-        };
-        const endingTitle = endingTitleMap[endingId] || "The Brave Heart";
-        setResult(endingTitle);
+      // Set transitioning state
+      setIsTransitioning(true);
 
-        // Track ending reached
-        trackEndingReached(endingId, endingTitle, scores, selectedPath);
+      // Apply transition delay (600ms for acknowledgment, reduced motion: instant)
+      const transitionDelay = prefersReducedMotion ? 0 : 600;
 
-        setStep("ending");
-      } else {
-        setStep(nextSceneId);
-      }
+      transitionTimeoutRef.current = setTimeout(() => {
+        if (nextSceneId === "ENDING") {
+          const endingId = evaluateEnding(scores);
+          const endingTitleMap: Record<string, string> = {
+            E1: "The Brave Heart",
+            E2: "The Quiet Protector",
+            E3: "The Heart That Waits",
+            E4: "The Hopeful Believer",
+            E5: "The Lonely Companion",
+            E6: "The Open Heart",
+            E7: "The Guarded Soul",
+            E8: "The Quiet Dreamer",
+            E9: "The Growing Soul",
+            E10: "The Mirror Seeker",
+            E11: "The Forgiver",
+            E12: "The Passionate Wanderer",
+            E13: "The Peaceful One",
+            E14: "The Shadow Holder",
+            E15: "The Unnamed Heart",
+            E16: "The Heart Between Worlds",
+          };
+          const endingTitle = endingTitleMap[endingId] || "The Brave Heart";
+          setResult(endingTitle);
+
+          // Track ending reached
+          trackEndingReached(endingId, endingTitle, scores, selectedPath);
+
+          setStep("ending");
+          setIsTransitioning(false);
+        } else {
+          setStep(nextSceneId);
+          setIsTransitioning(false);
+        }
+      }, transitionDelay);
     }
   };
 
   const handleRestart = () => {
+    // Clear any pending transitions
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+    }
+    setIsTransitioning(false);
+
     setStep("landing");
     setShowShare(false);
     setScores(initializeScores());
+    setMidpointShown(false);
+  };
+
+  const handleBeginJourney = async () => {
+    // Reload audio consent from localStorage in case it was just set
+    try {
+      const savedConsent = localStorage.getItem("audioConsent");
+      if (savedConsent !== null) {
+        const consentValue = savedConsent === "true";
+        setAudioConsent(consentValue);
+        console.log("🎵 Audio consent loaded:", consentValue);
+      }
+    } catch (error) {
+      console.warn("Failed to reload audio consent:", error);
+    }
+
+    setStep("relationship");
+  };
+
+  const handleToggleAudio = () => {
+    if (!audioManagerRef.current) return;
+
+    if (audioManagerRef.current.isMuted()) {
+      audioManagerRef.current.unmute();
+      setIsAudioMuted(false);
+      trackAudioUnmuted(selectedPath);
+    } else {
+      audioManagerRef.current.mute();
+      setIsAudioMuted(true);
+      trackAudioMuted(selectedPath);
+    }
+
+    console.log(
+      "🎵 Audio toggled. Muted:",
+      audioManagerRef.current.isMuted(),
+      "Playing:",
+      !!audioManagerRef.current,
+    );
   };
 
   const currentScene = STORY_DATA[step as SceneId];
@@ -208,21 +355,40 @@ export default function App() {
 
   return (
     <div className="font-sans text-gray-900 antialiased relative">
-      {step === "landing" && <Landing onBegin={() => setStep("relationship")} />}
+      {/* Audio Controls */}
+      <AudioControls
+        isMuted={isAudioMuted}
+        onToggleMute={handleToggleAudio}
+        isPlaying={isAudioPlaying}
+      />
+
+      {step === "landing" && (
+        <Landing
+          onBegin={handleBeginJourney}
+          onConsentChange={(consent) => {
+            setAudioConsent(consent);
+            console.log("🎵 Audio consent changed:", consent);
+          }}
+        />
+      )}
 
       {step === "relationship" && <RelationshipSelection onSelect={handleRelationshipSelect} />}
 
       {/* Check if current step corresponds to a valid story scene */}
       {currentScene && step !== "ending" && step !== "landing" && step !== "relationship" && (
-        <StoryScene
-          variant={currentScene.variant}
-          text={currentScene.text}
-          illustrationSrc={currentScene.illustrationSrc}
-          choices={currentScene.choices.map((choice, index) => ({
-            label: choice.label,
-            onClick: () => handleSceneChoice(choice.nextSceneId, index),
-          }))}
-        />
+        <AnimatePresence mode="wait">
+          <StoryScene
+            key={step}
+            isTransitioning={isTransitioning}
+            variant={currentScene.variant}
+            text={currentScene.text}
+            illustrationSrc={currentScene.illustrationSrc}
+            choices={currentScene.choices.map((choice, index) => ({
+              label: choice.label,
+              onClick: () => handleSceneChoice(choice.nextSceneId, index),
+            }))}
+          />
+        </AnimatePresence>
       )}
 
       {/* Midpoint feedback overlay */}

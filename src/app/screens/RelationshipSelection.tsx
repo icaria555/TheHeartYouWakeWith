@@ -10,31 +10,29 @@ const OPTIONS = [
   {
     id: "pathA",
     title: "Relationship & Date",
-    microcopy: "You have a partner and plans for tonight.",
+    microcopy: "You wake beside love, and tonight you'll celebrate it.",
   },
   {
     id: "pathB",
     title: "Relationship, No Date",
-    microcopy: "You have a partner, but no plans for tonight.",
+    microcopy: "You wake beside love, but tonight feels uncertain.",
   },
   {
     id: "pathC",
     title: "No Relationship",
-    microcopy: "It's just you today. No date, no partner.",
+    microcopy: "You wake alone, and the day stretches quiet ahead.",
   },
 ];
 
-export const RelationshipSelection: React.FC<RelationshipSelectionProps> = ({
-  onSelect,
-}) => {
+export const RelationshipSelection: React.FC<RelationshipSelectionProps> = ({ onSelect }) => {
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center pt-16 px-6">
+    <div className="w-full min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-rose-50 flex flex-col items-center pt-16 px-6">
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-3xl font-semibold text-gray-900 mb-8 text-center"
       >
-        Who are you today?
+        What kind of Valentine's morning rises inside your heart today?
       </motion.h2>
 
       <div className="flex flex-col gap-6 w-full max-w-md">

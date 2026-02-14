@@ -20,7 +20,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-
+  base: "/",
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  build: {
+    outDir: "docs",
+    sourcemap: true,
+  },
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ["**/*.svg", "**/*.csv"],
 });

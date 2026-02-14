@@ -18,8 +18,11 @@ Your choices shape your dimensional profile, which determines your ending throug
 ## ✨ Features
 
 - **16 Unique Endings**: Including 2 secret endings for balanced or extreme emotional states
-- **3 Story Paths**: Relationship with plans, relationship without plans, or single
+- **3 Story Paths**: Relationship with plans (8 scenes), relationship without plans (9 scenes), or single (7 scenes)
+- **Immersive Experience**: ~7-10 minute contemplative journey with ambient music and animated backgrounds
 - **Dimensional Scoring**: Nuanced emotional profiling across 6 psychological axes
+- **Path-Based Audio**: Ambient background music tailored to each relationship journey (hopeful, reflective, or melancholic themes)
+- **Visual Atmosphere**: Subtle gradient animations and particle effects create a meditative aesthetic
 - **Subtle Feedback**: Evocative phrases at the midpoint reflect your dominant emotional tendency
 - **Privacy-First Analytics**: Optional tracking with explicit consent and full control
 - **User Feedback**: Share your thoughts with optional text contribution
@@ -155,10 +158,12 @@ The Buy Me a Coffee widget appears on the ending screen and is fully optional.
 - **Build Tool**: Vite 6
 - **Styling**: Tailwind CSS 4
 - **Animation**: Motion (Framer Motion fork)
+- **Audio**: Web Audio API with progressive loading
 - **UI Components**: Radix UI + shadcn/ui
 - **Analytics**: Google Analytics 4
 - **Icons**: Lucide React
 - **Images**: Unsplash
+- **Music**: Epidemic Sound (licensed)
 
 ## 📁 Project Structure
 
@@ -167,16 +172,22 @@ src/
 ├── app/
 │   ├── App.tsx              # Main orchestration
 │   ├── screens/             # Full-page views
-│   ├── components/ui/       # Reusable UI components
+│   ├── components/
+│   │   ├── ui/              # Reusable UI components
+│   │   ├── AudioControls.tsx
+│   │   └── ParticleEffect.tsx
 │   └── data/                # Story content & results
 ├── dev/
 │   ├── ScoreBalanceTool.tsx # Score validation tool
 │   └── TESTING.md           # Testing guide
 ├── lib/
 │   ├── scoringEngine.ts     # Dimensional scoring system
+│   ├── audioManager.ts      # Path-based audio system
 │   ├── analytics.ts         # GA4 integration
 │   └── utils.ts
-└── styles/                  # Global styles
+├── types/
+│   └── audio.ts             # Audio type definitions
+└── styles/                  # Global styles + backgrounds
 ```
 
 ## 📖 Documentation

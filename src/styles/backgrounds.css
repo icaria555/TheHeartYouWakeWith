@@ -1,0 +1,89 @@
+/**
+ * Animated Background Gradients
+ * Subtle 30-60s shifts for calm meditative aesthetic
+ */
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* WARM Theme - Hopeful, romantic, celebratory (Path A default) */
+.bg-gradient-warm {
+  background: linear-gradient(
+    135deg,
+    #fff5f5 0%,
+    #fed7e2 25%,
+    #fbb6ce 50%,
+    #f687b3 75%,
+    #fff5f5 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 45s ease-in-out infinite;
+}
+
+/* COOL Theme - Reflective, melancholic, introspective (Path B/C default) */
+.bg-gradient-cool {
+  background: linear-gradient(
+    135deg,
+    #e0f2fe 0%,
+    #bae6fd 25%,
+    #7dd3fc 50%,
+    #38bdf8 75%,
+    #e0f2fe 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 50s ease-in-out infinite;
+}
+
+/* NEUTRAL Theme - Contemplative, balanced, uncertain */
+.bg-gradient-neutral {
+  background: linear-gradient(
+    135deg,
+    #f5f5f4 0%,
+    #e7e5e4 25%,
+    #d6d3d1 50%,
+    #a8a29e 75%,
+    #f5f5f4 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 55s ease-in-out infinite;
+}
+
+/* VIBRANT Theme - Tension, intensity, decision points */
+.bg-gradient-vibrant {
+  background: linear-gradient(
+    135deg,
+    #fef3c7 0%,
+    #fde68a 25%,
+    #fcd34d 50%,
+    #fbbf24 75%,
+    #fef3c7 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 40s ease-in-out infinite;
+}
+
+/* Gradient transition between scenes */
+.gradient-transition {
+  transition: background 2s ease-in-out;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .bg-gradient-warm,
+  .bg-gradient-cool,
+  .bg-gradient-neutral,
+  .bg-gradient-vibrant {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  
+  .gradient-transition {
+    transition: none;
+  }
+}

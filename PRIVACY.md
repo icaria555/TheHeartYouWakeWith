@@ -28,6 +28,12 @@ If you choose to enable analytics, we collect:
 - Star rating (if you provide it)
 - Text feedback (ONLY if you explicitly consent to share it)
 
+✅ **Audio Interactions** (if enabled):
+
+- When you enable audio (automatic after consent)
+- When you mute or unmute audio
+- Which audio theme played for your path (hopeful, reflective, or melancholic)
+
 ### Always Anonymized
 
 🔒 **IP addresses are anonymized** - Google Analytics 4 removes the last octet
@@ -166,17 +172,20 @@ All consent logic happens in your browser:
 
 When analytics is enabled, we send these events to Google Analytics:
 
-| Event Name           | When It Fires             | Data Included                                   |
-| -------------------- | ------------------------- | ----------------------------------------------- |
-| `session_start`      | You begin the experience  | Event category only                             |
-| `path_selected`      | You choose A, B, or C     | Path name                                       |
-| `choice_made`        | You make a choice         | Scene ID, choice label, score deltas            |
-| `midpoint_reached`   | You reach scene 3         | Path, dominant dimension, scores                |
-| `ending_reached`     | You complete the story    | Ending ID/title, scores, path                   |
-| `feedback_submitted` | You submit feedback       | Ending ID, feedback length, text (if consented) |
-| `share_clicked`      | You click Share button    | Ending ID                                       |
-| `restart_clicked`    | You click Restart         | Ending ID                                       |
-| `coffee_clicked`     | You click Buy Me a Coffee | Ending ID                                       |
+| Event Name           | When It Fires             | Data Included                                           |
+| -------------------- | ------------------------- | ------------------------------------------------------- |
+| `session_start`      | You begin the experience  | Event category only                                     |
+| `path_selected`      | You choose A, B, or C     | Path name                                               |
+| `choice_made`        | You make a choice         | Scene ID, choice label, score deltas                    |
+| `midpoint_reached`   | You reach scene 3         | Path, dominant dimension, scores                        |
+| `ending_reached`     | You complete the story    | Ending ID/title, scores, path                           |
+| `audio_enabled`      | Audio starts playing      | Path name, audio theme (hopeful/reflective/melancholic) |
+| `audio_muted`        | You mute audio            | Path name                                               |
+| `audio_unmuted`      | You unmute audio          | Path name                                               |
+| `feedback_submitted` | You submit feedback       | Ending ID, feedback length, text (if consented)         |
+| `share_clicked`      | You click Share button    | Ending ID                                               |
+| `restart_clicked`    | You click Restart         | Ending ID                                               |
+| `coffee_clicked`     | You click Buy Me a Coffee | Ending ID                                               |
 
 Each event includes standard GA4 metadata (timestamp, anonymized IP, country, device type, browser).
 
@@ -191,7 +200,15 @@ Each event includes standard GA4 metadata (timestamp, anonymized IP, country, de
 ### Buy Me a Coffee
 
 - **Purpose**: Creator support widget
-- **Privacy Policy**: https://www.buymeacoffee.com/privacy-policy
+- \*\*Epidemic Sound
+
+- **Purpose**: Background music for immersive experience
+- **Privacy Policy**: https://www.epidemicsound.com/privacy-policy/
+- **Data**: Audio files hosted locally; no tracking by Epidemic Sound
+- **Audio Consent**: Separate consent required for audio playback (stored locally)
+
+### Privacy Policy\*\*: https://www.buymeacoffee.com/privacy-policy
+
 - **Data**: No tracking from our side; Buy Me a Coffee may track clicks
 
 ### Unsplash

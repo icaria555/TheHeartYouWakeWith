@@ -5,9 +5,15 @@ interface ConsentDialogProps {
   isOpen: boolean;
   onAccept: () => void;
   onDecline: () => void;
+  includeAudio?: boolean;
 }
 
-export const ConsentDialog: React.FC<ConsentDialogProps> = ({ isOpen, onAccept, onDecline }) => {
+export const ConsentDialog: React.FC<ConsentDialogProps> = ({
+  isOpen,
+  onAccept,
+  onDecline,
+  includeAudio = true,
+}) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -28,14 +34,33 @@ export const ConsentDialog: React.FC<ConsentDialogProps> = ({ isOpen, onAccept, 
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
           >
             <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/60 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Your Privacy Matters</h3>
-              <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                We'd like to use analytics to understand how people experience this story and
-                improve it over time. We'll collect anonymous data about your choices and journey,
-                but never any personal information.
-              </p>
-              <p className="text-xs text-gray-600 mb-6">
-                You can change your preference anytime from the settings.
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {includeAudio ? "Enhance Your Experience" : "Your Privacy Matters"}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                    We'd like to use analytics to understand how people experience this story and
+                    improve it over time. We'll collect anonymous data about your choices and
+                    journey, but never any personal information.
+                  </p>
+                </div>
+
+                {includeAudio && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                      This experience includes background music that enhances the emotional journey.
+                      The music will play automatically based on your chosen path.
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      You can mute the audio at any time using the controls in the top-right corner.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-600 mt-4 mb-6">
+                You can change your preferences anytime from the settings.
               </p>
 
               <div className="flex gap-3">

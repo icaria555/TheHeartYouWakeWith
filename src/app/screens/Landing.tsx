@@ -8,9 +8,10 @@ import { getAnalyticsConsent, setAnalyticsConsent, initializeAnalytics } from ".
 
 interface LandingProps {
   onBegin: () => void;
+  onConsentChange?: (consent: boolean) => void;
 }
 
-export const Landing: React.FC<LandingProps> = ({ onBegin }) => {
+export const Landing: React.FC<LandingProps> = ({ onBegin, onConsentChange }) => {
   const [showConsentDialog, setShowConsentDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
@@ -29,11 +30,30 @@ export const Landing: React.FC<LandingProps> = ({ onBegin }) => {
 
   const handleAcceptConsent = () => {
     setAnalyticsConsent(true);
+
+    // Also grant audio consent by default
+    try {
+      localStorage.setItem("audioConsent", "true");
+      onConsentChange?.(true); // Notify parent component
+    } catch (error) {
+      console.warn("Failed to save audio consent:", error);
+    }
+
     setShowConsentDialog(false);
   };
 
   const handleDeclineConsent = () => {
     setAnalyticsConsent(false);
+
+    // User can still have audio, but we'll ask separately later if needed
+    // For now, opting out of analytics also opts out of audio
+    try {
+      localStorage.setItem("audioConsent", "false");
+      onConsentChange?.(false); // Notify parent component
+    } catch (error) {
+      console.warn("Failed to save audio consent:", error);
+    }
+
     setShowConsentDialog(false);
   };
   return (
@@ -108,6 +128,7 @@ export const Landing: React.FC<LandingProps> = ({ onBegin }) => {
         isOpen={showConsentDialog}
         onAccept={handleAcceptConsent}
         onDecline={handleDeclineConsent}
+        includeAudio={true}
       />
 
       {/* Settings Dialog */}

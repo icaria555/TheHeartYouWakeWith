@@ -10,17 +10,19 @@ interface CardOptionProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const CardOption = React.forwardRef<HTMLDivElement, CardOptionProps>(
   ({ title, microcopy, selected, className, onClick, ...props }, ref) => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     return (
       <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
+        whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
         onClick={onClick}
         className={cn(
           "bg-white rounded-[16px] p-6 shadow-sm border-2 cursor-pointer transition-all w-full text-left",
           selected
             ? "border-pink-500 ring-2 ring-pink-200"
             : "border-transparent hover:border-pink-200",
-          className
+          className,
         )}
         ref={ref}
         {...props}
@@ -29,6 +31,6 @@ export const CardOption = React.forwardRef<HTMLDivElement, CardOptionProps>(
         {microcopy && <p className="text-gray-500 text-sm">{microcopy}</p>}
       </motion.div>
     );
-  }
+  },
 );
 CardOption.displayName = "CardOption";

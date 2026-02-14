@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "Epidemic": {
+      "url": "https://www.epidemicsound.com/a/mcp-service/mcp",
+      "type": "http",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ4NENRVjFLS3NVRFppX0VYSm0tUE5pZUFMS3Fyemx4MlZnSUJURVB6THFnIn0.eyJleHAiOjE3NzM2NDM4NzEsImlhdCI6MTc3MTA1MTg3MSwiYXV0aF90aW1lIjoxNzcxMDUwODE4LCJqdGkiOiJudHJ0dGU6NGRmMzdjOTQtNjZlYi1lM2I4LTZlOTUtMjczNDhjZDI4OGYyIiwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5lcGlkZW1pY3NvdW5kLmNvbS9hdXRoL3JlYWxtcy9hY2NvdW50cyIsImF1ZCI6ImVwaWRlbWljLWFwaSIsInN1YiI6IjY1NWFlOTg0LThlMzEtNGFlNC04MzY0LTVkNTVlZjY4MDk4OCIsInR5cCI6IkJlYXJlciIsImF6cCI6ImVwaWRlbWljLWFwaSIsInNpZCI6InM4RW1mQUpJWV9USnRPcEFVTnRUcHpETyIsInNjb3BlIjoiZW1haWwiLCJ3b3Jrc3BhY2VfaWQiOiI1OWM2NTJhMC1hNWRlLTRjOWItYTc1My01MmU1YzFhODAzZTIiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZW1haWwiOiJpY2V3YXI5QGdtYWlsLmNvbSJ9.Trp_9QJyfgidohZkpYyhqDnPRIRK0s-RW6-JMFcbwxds9aQouTQnOfb4w7y0r7V-2uct6o7tb5vAXeP0AXOm77yktAZPDvrkTb_ESf1ReGf11bVGzYskuPjejN5Nw8s97M_g3F4lJwQmQFwPaaJ6Ndjoq0pRWbz166oBYuV87T7xHZbdX4eIEQAXEuG6rcP3hNShkQY9_p2Lzz40CcfXDlkVG_B7A4Fpvy-mHQD2YNQdPAuRCdSO_oeQ_X8-XcC3DIv-QZWUJmedYWd7IvpC1TZPcIS1KF8UqJ9n5Fx8h5G_2gVDje_rX6lwxmaqsMpnQpuyMTYR8KFGg7OhwUmkTw"
+      }
+    }
+  },
+  "inputs": []
+}

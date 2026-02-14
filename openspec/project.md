@@ -14,6 +14,8 @@ The project creates a meaningful, reflective experience that goes beyond superfi
 - **Build Tool**: Vite 6.3.5
 - **Styling**: Tailwind CSS 4.1.12 with custom theme variables
 - **Animation**: Motion (Framer Motion fork) 12.23.24
+- **Audio**: Web Audio API with progressive loading on path selection
+- **Music**: Epidemic Sound (licensed) - Path-based ambient themes
 - **UI Components**:
   - Radix UI primitives (accordion, dialog, dropdown, etc.)
   - shadcn/ui components (built on Radix UI) under MIT license
@@ -67,6 +69,9 @@ src/
 │   │   └── SettingsDialog.tsx
 │   ├── components/
 │   │   ├── ui/          # Reusable UI components (shadcn/ui)
+│   │   │   ├── AudioControls.tsx   # Audio player controls
+│   │   │   ├── ParticleEffect.tsx  # Ambient particle animations
+│   │   │   └── ...
 │   │   ├── figma/       # Figma-generated components
 │   │   └── ConsentDialog.tsx  # Analytics consent modal
 │   └── data/            # Story content and results
@@ -77,10 +82,14 @@ src/
 │   └── TESTING.md       # Score Balance Tool test guide
 ├── lib/                 # Utilities
 │   ├── scoringEngine.ts # Dimensional scoring system
+│   ├── audioManager.ts  # Web Audio API manager
 │   ├── analytics.ts     # Google Analytics 4 integration
 │   ├── analyticsConfig.ts
 │   └── utils.ts
+├── types/               # TypeScript definitions
+│   └── audio.ts         # Audio system types
 └── styles/              # Global styles
+    └── backgrounds.css  # Animated gradient backgrounds
 ```
 
 ### Testing Strategy
@@ -105,15 +114,20 @@ Standard feature branch workflow:
 
 The experience follows a dimensional scoring structure with:
 
-- **3 Main Paths**: Based on relationship status sel selection
-  - Path A: In a relationship with Valentine's plans (initial: +1 hope, +1 honesty)
-  - Path B: In a relationship without Valentine's plans (initial: -1 hope, -1 selfWorth)
-  - Path C: Single/not in a relationship (initial: +1 selfWorth, -1 action)
-- **5 Scenes per Path**: Progressive emotional journey
+- **3 Main Paths**: Based on relationship status selection
+  - Path A: In a relationship with Valentine's plans (8 scenes, "hopeful" audio theme)
+    - Initial scores: +1 hope, +1 honesty
+  - Path B: In a relationship without Valentine's plans (9 scenes, "reflective" audio theme)
+    - Initial scores: -1 hope, -1 selfWorth
+  - Path C: Single/not in a relationship (7 scenes, "melancholic" audio theme)
+    - Initial scores: +1 selfWorth, -1 action
+- **7-9 Scenes per Path**: Progressive emotional journey (24 total scenes)
+  - Expanded from 5 scenes to create ~7-10 minute contemplative experience
+  - Scene distribution: Path A (8), Path B (9), Path C (7)
   - Scene 1-2: Story/setup (variant: "story")
   - Scene 3: Tension moment (variant: "tension") - Midpoint feedback shown
-  - Scene 4: Hesitation decision (variant: "hesitation")
-  - Scene 5: Final crossroad (variant: "crossroad") - May branch conditionally
+  - Scene 4-6: Deeper exploration (variants: "story", "hesitation", "crossroad")
+  - Final scenes: Climactic decisions leading to endings
 - **16 Possible Endings**: Determined by six-dimensional scores, not choice trees
   - E1-E14: Standard endings based on dimensional thresholds
   - E15-E16: Secret endings for balanced/extreme scores (<5% frequency target)
@@ -202,6 +216,11 @@ interface ResultData {
   - IP anonymization enabled
   - No automatic page views
   - localStorage consent management
+  - Audio analytics: audio_enabled, audio_muted, audio_unmuted events
+- **Epidemic Sound**: Licensed background music (subscription required for production)
+  - 3 path-based ambient tracks (hopeful, reflective, melancholic)
+  - License Date: February 14, 2026
+  - Tracks: path-a-hopeful.mp3, path-b-reflective.mp3, path-c-melancholic.mp3
 - **Buy Me a Coffee**: Creator support widget (buymeacoffee.com/hasnainrafiq)
 - **No CDN**: All assets bundled with Vite
 
@@ -215,6 +234,34 @@ interface ResultData {
 ## Recent Changes
 
 ### Implemented Features
+
+- **✅ Audio & Visual Enhancements** (February 2026)
+  - Impact: MAJOR - Transformed experience from quick quiz to contemplative journey
+  - Duration: Expanded from 3-5 minutes to 7-10 minutes (24 total scenes)
+  - **Audio System**:
+    - Web Audio API integration with fade-in/fade-out transitions (2-second fades)
+    - 3 path-based ambient themes from Epidemic Sound (hopeful, reflective, melancholic)
+    - Progressive loading after path selection to comply with autoplay policies
+    - localStorage preferences for volume and mute state
+    - Floating AudioControls component with mute toggle and compact design
+    - Audio analytics tracking (audio_enabled, audio_muted, audio_unmuted)
+  - **Visual Atmosphere**:
+    - Animated gradient backgrounds with 30-60 second subtle transitions
+    - Particle effects (10-20 floating elements) on Landing and Ending screens
+    - Micro-animations: <300ms transition durations for polish
+  - **Content Expansion**:
+    - Path A: 5→8 scenes (deeper exploration of planned relationship moments)
+    - Path B: 5→9 scenes (nuanced navigation of relationship uncertainty)
+    - Path C: 5→7 scenes (thoughtful single perspective journey)
+  - **Scene Transitions**:
+    - 600ms acknowledgment delay after choice selection
+    - 0.8-second fade animations between scenes
+    - Staggered content reveal for polish
+  - **Scoring Adjustments**:
+    - E10 fix: honesty requirement 1→2 (reduced Path A over-representation)
+    - E14 enhancement: Now requires 3+ negative dimensions
+    - E9 improvements: action requirement 2→1, added compassion boost
+  - See: `openspec/changes/enrich-story-experience/` for full details
 
 - **✅ Dimensional Scoring Engine** (February 2026)
   - Impact: BREAKING - Major architectural change

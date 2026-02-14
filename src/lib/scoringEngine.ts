@@ -186,18 +186,20 @@ export const ENDING_CONDITIONS: EndingCondition[] = [
   },
 
   // E9 - The Growing Soul (Cross-path: High action and compassion)
+  // Lowered action requirement to 1 to allow Path C to reach it
   {
     id: "E9",
     condition: {
       type: "and",
       rules: [
-        { type: "gte", dimension: "action", value: 2 },
+        { type: "gte", dimension: "action", value: 1 },
         { type: "gte", dimension: "compassion", value: 2 },
       ],
     },
   },
 
   // E4 - The Hopeful Believer (Path B: High hope, recovered from low start)
+  // Requires action < 2 to avoid intercepting E9 (Growing Soul)
   {
     id: "E4",
     condition: {
@@ -205,6 +207,7 @@ export const ENDING_CONDITIONS: EndingCondition[] = [
       rules: [
         { type: "gte", dimension: "hope", value: 2 },
         { type: "gte", dimension: "compassion", value: 1 },
+        { type: "lte", dimension: "action", value: 1 },
       ],
     },
   },
@@ -237,7 +240,7 @@ export const ENDING_CONDITIONS: EndingCondition[] = [
       type: "and",
       rules: [
         { type: "gte", dimension: "vulnerability", value: 2 },
-        { type: "gte", dimension: "honesty", value: 1 },
+        { type: "gte", dimension: "honesty", value: 2 },
       ],
     },
   },
@@ -316,9 +319,37 @@ export const ENDING_CONDITIONS: EndingCondition[] = [
 
   // E14 - The Shadow Holder (Fallback: Predominantly negative scores)
   // This is checked last as the fallback ending
+  // Requires at least 3 dimensions to be negative (value <= -1)
   {
     id: "E14",
-    condition: { type: "lte", dimension: "hope", value: -1 }, // Always matches negative hope
+    condition: {
+      type: "or",
+      rules: [
+        // Pattern 1: At least 3 core negative dimensions
+        {
+          type: "and",
+          rules: [
+            { type: "lte", dimension: "hope", value: -1 },
+            { type: "lte", dimension: "vulnerability", value: -1 },
+            { type: "lte", dimension: "honesty", value: -1 },
+          ],
+        },
+        // Pattern 2: Severe negativity in hope + 1 other
+        {
+          type: "and",
+          rules: [
+            { type: "lte", dimension: "hope", value: -2 },
+            {
+              type: "or",
+              rules: [
+                { type: "lte", dimension: "selfWorth", value: -1 },
+                { type: "lte", dimension: "action", value: -2 },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
 ];
 

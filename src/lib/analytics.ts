@@ -217,3 +217,37 @@ export const trackCoffeeClicked = (endingId: string): void => {
     ending_id: endingId,
   });
 };
+
+// Track audio enabled
+export const trackAudioEnabled = (path: string, theme: string): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  console.log(`📊 Tracking: audio_enabled - ${path} - ${theme}`);
+  window.gtag("event", "audio_enabled", {
+    event_category: "audio",
+    path_name: path,
+    audio_theme: theme,
+  });
+};
+
+// Track audio muted
+export const trackAudioMuted = (path: string): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  console.log(`📊 Tracking: audio_muted - ${path}`);
+  window.gtag("event", "audio_muted", {
+    event_category: "audio",
+    path_name: path,
+  });
+};
+
+// Track audio unmuted
+export const trackAudioUnmuted = (path: string): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  console.log(`📊 Tracking: audio_unmuted - ${path}`);
+  window.gtag("event", "audio_unmuted", {
+    event_category: "audio",
+    path_name: path,
+  });
+};

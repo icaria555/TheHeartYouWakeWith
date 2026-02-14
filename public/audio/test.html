@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Audio Test</title>
+  </head>
+  <body>
+    <h1>Manual Audio Test</h1>
+
+    <h2>Path A - Hopeful</h2>
+    <audio controls src="/audio/path-a-hopeful.mp3"></audio>
+
+    <h2>Path B - Reflective</h2>
+    <audio controls src="/audio/path-b-reflective.mp3"></audio>
+
+    <h2>Path C - Melancholic</h2>
+    <audio controls src="/audio/path-c-melancholic.mp3"></audio>
+
+    <script>
+      // Test if files load
+      fetch("/audio/path-a-hopeful.mp3")
+        .then((r) => console.log("Path A:", r.ok ? "OK" : "FAILED"))
+        .catch((e) => console.error("Path A error:", e));
+
+      fetch("/audio/path-b-reflective.mp3")
+        .then((r) => console.log("Path B:", r.ok ? "OK" : "FAILED"))
+        .catch((e) => console.error("Path B error:", e));
+
+      fetch("/audio/path-c-melancholic.mp3")
+        .then((r) => console.log("Path C:", r.ok ? "OK" : "FAILED"))
+        .catch((e) => console.error("Path C error:", e));
+    </script>
+  </body>
+</html>

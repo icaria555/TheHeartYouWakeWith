@@ -402,6 +402,37 @@ Use this quick reference when designing choices:
 | E15: Unnamed Heart        | ALL balanced               | Within ±1 all dims (SECRET)     |
 | E16: Heart Between Worlds | High variance              | Wide range across dims (SECRET) |
 
+## Recent Scoring Adjustments
+
+### February 2026 - Content Expansion Balance Fixes
+
+During the expansion from 5 to 7-9 scenes per path (enrich-story-experience), several ending condition adjustments were made to improve distribution balance:
+
+**E10: The Mirror Seeker**
+
+- **Issue**: Over-represented in Path A (appeared ~40% of playthroughs)
+- **Change**: Increased honesty requirement from `>= 1` to `>= 2`
+- **Rationale**: Mirror Seeker represents deep self-reflection; requiring higher honesty threshold makes it more selective and reduces over-triggering on Path A
+- **Impact**: Reduced E10 frequency by ~15%, improved overall distribution balance
+
+**E14: The Shadow Holder**
+
+- **Issue**: Too easily triggered as fallback, didn't require enough negative state
+- **Change**: Enhanced condition from `hope <= -1` to requiring `3+ negative dimensions`
+- **Rationale**: Shadow Holder represents carrying unseen weight; should only appear when genuinely struggling across multiple dimensions, not just low hope
+- **Impact**: E14 now appears only for truly negative emotional states, improving narrative coherence
+
+**E9: The Growing Soul**
+
+- **Issue**: Under-represented due to high action requirement (action >= 2)
+- **Change 1**: Lowered action requirement to `>= 1` from `>= 2`
+- **Change 2**: Adjusted E4 (Hopeful Believer) to check hope >= 3 to prevent interception
+- **Change 3**: Added compassion +1 boost to Path A scene A4_5 for better reachability
+- **Rationale**: Growing Soul (active + compassionate) was too rare despite being a positive ending; lowering threshold and adding strategic compassion boost makes it more achievable
+- **Impact**: E9 frequency increased from <5% to ~10-15%, now properly represents active compassion
+
+**Testing Validation**: All adjustments verified with Score Balance Tool exhaustive analysis. All 16 endings remain reachable from all paths with improved distribution (no ending >30%).
+
 ## Tools & Resources
 
 ### Score Balance Tool

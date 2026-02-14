@@ -19,6 +19,7 @@ interface StorySceneProps {
   text: string;
   illustrationSrc?: string;
   choices: Choice[];
+  isTransitioning?: boolean;
 }
 
 export const StoryScene: React.FC<StorySceneProps> = ({
@@ -26,6 +27,7 @@ export const StoryScene: React.FC<StorySceneProps> = ({
   text,
   illustrationSrc,
   choices,
+  isTransitioning = false,
 }) => {
   const [showChoices, setShowChoices] = useState(false);
 
@@ -39,8 +41,21 @@ export const StoryScene: React.FC<StorySceneProps> = ({
     }
   }, [variant]);
 
+  // Check for reduced motion preference
+  const prefersReducedMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-rose-50/50 via-white to-purple-50/30 flex flex-col items-center justify-center p-6 overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{
+        duration: prefersReducedMotion ? 0.2 : 0.8,
+        ease: "easeInOut",
+      }}
+      className="relative w-full min-h-screen bg-gradient-to-br from-rose-50/50 via-white to-purple-50/30 flex flex-col items-center justify-center p-6 overflow-hidden"
+    >
       {/* Subtle ambient background */}
       <div className="absolute inset-0 bg-gradient-to-tr from-pink-50/20 via-transparent to-violet-50/20 pointer-events-none" />
 
@@ -109,7 +124,10 @@ export const StoryScene: React.FC<StorySceneProps> = ({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: variant === "tension" ? 2 : 0.8 }}
+          transition={{
+            duration: prefersReducedMotion ? 0.2 : variant === "tension" ? 2 : 1.0,
+            delay: prefersReducedMotion ? 0 : 0.2,
+          }}
           className={cn(
             "text-gray-900 leading-relaxed mb-12",
             variant === "story" ? "text-lg md:text-xl font-normal" : "",
@@ -127,7 +145,10 @@ export const StoryScene: React.FC<StorySceneProps> = ({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{
+                duration: prefersReducedMotion ? 0.2 : 0.6,
+                delay: prefersReducedMotion ? 0 : 0.4,
+              }}
               className={cn("flex flex-col w-full", {
                 "gap-4": variant !== "crossroad",
                 "gap-8": variant === "crossroad", // Wider gap for crossroad
@@ -137,14 +158,19 @@ export const StoryScene: React.FC<StorySceneProps> = ({
                 <motion.button
                   key={index}
                   onClick={choice.onClick}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 10 }}
+                  disabled={isTransitioning}
+                  whileHover={prefersReducedMotion || isTransitioning ? {} : { scale: 1.02, y: -2 }}
+                  whileTap={prefersReducedMotion || isTransitioning ? {} : { scale: 0.98 }}
+                  initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{
+                    delay: prefersReducedMotion ? 0 : 0.5 + index * 0.15,
+                    duration: prefersReducedMotion ? 0.2 : 0.4,
+                  }}
                   className={cn(
                     "w-full px-6 py-4 rounded-xl font-medium text-base transition-all duration-300 shadow-md hover:shadow-xl",
                     {
+                      "opacity-50 cursor-not-allowed": isTransitioning,
                       // Standard story variant
                       "bg-gradient-to-r from-rose-50 to-pink-50 hover:from-rose-100 hover:to-pink-100 border border-rose-200/50 text-gray-800 hover:text-gray-900":
                         variant === "story",
@@ -167,6 +193,6 @@ export const StoryScene: React.FC<StorySceneProps> = ({
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };

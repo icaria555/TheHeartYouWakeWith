@@ -1,0 +1,7 @@
+{
+  "chat.mcp.serverSampling": {
+    "TheHeartYouWakeWith/.vscode/mcp.json: Epidemic": {
+      "allowedModels": ["copilot/claude-sonnet-4.5"]
+    }
+  }
+}
