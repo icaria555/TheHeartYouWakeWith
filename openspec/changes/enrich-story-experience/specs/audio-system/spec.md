@@ -4,129 +4,158 @@
 
 ### Requirement: Audio manager initialization and lifecycle
 
-The system must provide an audio manager that initializes on user consent, loads music themes, and maintains playback state throughout the experience.
+The system SHALL provide an audio manager that initializes on user consent, loads path-specific music theme, and maintains playback state throughout the experience.
 
 #### Scenario: User grants audio consent on Landing screen
+
 - **Given**: User views audio consent option on Landing screen
-- **When**: User checks "Enable ambient music" and starts journey
+- **When**: User checks "Enable ambient music" and selects a path
 - **Then**: Audio manager initializes Audio API
-- **And**: First audio theme (based on Path selection) preloads
-- **And**: Music begins playing when first scene renders (after user interaction)
+- **And**: Path-specific audio theme loads after path selection (Path A: hopeful, Path B: reflective, Path C: melancholic)
+- **And**: Music begins playing (default on) when first story scene renders
 - **And**: Audio preference saved to localStorage (`audioPreference: { enabled: true, volume: 0.7 }`)
 
 #### Scenario: User declines audio consent
+
 - **Given**: User views audio consent option on Landing screen
 - **When**: User leaves "Enable ambient music" unchecked
 - **Then**: Audio manager does not initialize
 - **And**: No audio files load (bandwidth savings)
-- **And**: Audio controls UI remains visible but displays "Audio disabled" state
+- **And**: AudioControls UI adapts to show "Audio disabled" or is hidden
 - **And**: Audio preference saved to localStorage (`audioPreference: { enabled: false }`)
 
 #### Scenario: Returning user with audio consent
+
 - **Given**: User has previously granted audio consent (localStorage has `audioPreference.enabled: true`)
 - **When**: User returns to experience
 - **Then**: Audio manager initializes automatically on Landing screen
 - **And**: Audio begins playing when journey starts (no re-consent needed)
 - **And**: Previous volume level restored from localStorage
 
-### Requirement: Audio theme library with 3 emotional themes
+### Requirement: Audio theme library with 3 path-specific themes from Epidemic Sound
 
-The system must provide 3 distinct music themes that match different emotional tones in the narrative.
+The system SHALL provide 3 distinct music themes sourced from Epidemic Sound, each assigned to a specific journey path.
 
-#### Scenario: System loads HOPEFUL theme
-- **Given**: Audio manager is initialized
-- **When**: Scene requires "hopeful" audio theme
-- **Then**: System loads `public/audio/hopeful.mp3` (or OGG fallback)
+#### Scenario: System loads HOPEFUL theme for Path A
+
+- **Given**: User selects Path A ("Relationship & Date")
+- **When**: Audio manager loads path-specific theme
+- **Then**: System loads `public/audio/path-a.mp3` from Epidemic Sound library (or OGG fallback)
 - **And**: Track is 60-90 seconds long, seamless loop
 - **And**: Theme features uplifting melody, major key, bright instrumentation
 - **And**: File size approximately 500KB-1MB (compressed 128kbps)
+- **And**: Epidemic Sound license required for production use
 
-#### Scenario: System loads REFLECTIVE theme
-- **Given**: Audio manager is initialized
-- **When**: Scene requires "reflective" audio theme
-- **Then**: System loads `public/audio/reflective.mp3` (or OGG fallback)
+#### Scenario: System loads REFLECTIVE theme for Path B
+
+- **Given**: User selects Path B ("Relationship, No Date")
+- **When**: Audio manager loads path-specific theme
+- **Then**: System loads `public/audio/path-b.mp3` from Epidemic Sound library (or OGG fallback)
 - **And**: Track is 60-90 seconds long, seamless loop
 - **And**: Theme features gentle melody, neutral key, soft instrumentation
 - **And**: Mood supports introspection and thoughtfulness
 
-#### Scenario: System loads MELANCHOLIC theme
-- **Given**: Audio manager is initialized
-- **When**: Scene requires "melancholic" audio theme
-- **Then**: System loads `public/audio/melancholic.mp3` (or OGG fallback)
+#### Scenario: System loads MELANCHOLIC/PEACEFUL theme for Path C
+
+- **Given**: User selects Path C ("No Relationship")
+- **When**: Audio manager loads path-specific theme
+- **Then**: System loads `public/audio/path-c.mp3` from Epidemic Sound library (or OGG fallback)
 - **And**: Track is 60-90 seconds long, seamless loop
-- **And**: Theme features somber melody, minor key, understated instrumentation
-- **And**: Mood supports sadness, longing, or emotional weight
+- **And**: Theme features somber or peaceful melody, minor/neutral key, understated instrumentation
+- **And**: Mood supports single-perspective self-reflection
 
-### Requirement: Audio theme selection and crossfading
+### Requirement: Path-based audio theme selection with fade in/out
 
-The system must intelligently select audio themes based on scene defaults and dimensional score overrides, with smooth crossfades between themes.
+The system SHALL select a single audio theme based on the user's path choice and play it consistently throughout the entire journey.
 
-#### Scenario: Scene specifies default audio theme
-- **Given**: User enters Scene A2 with `audioTheme: "reflective"`
-- **When**: Scene renders and no score overrides apply
-- **Then**: Audio manager transitions to "reflective" theme
-- **And**: If already playing different theme, 2-second crossfade begins
-- **And**: If already playing same theme, no transition occurs (continues playing)
+#### Scenario: Path A plays HOPEFUL theme throughout journey
 
-#### Scenario: Dimensional scores override audio theme to HOPEFUL
-- **Given**: User's accumulated `hope` score exceeds +2
-- **When**: User navigates to any scene (regardless of scene's default theme)
-- **Then**: Audio manager overrides to "hopeful" theme
-- **And**: Crossfade to hopeful theme over 2 seconds
-- **And**: Override persists until `hope` score drops below +2
+- **Given**: User selects Path A ("Relationship & Date")
+- **When**: First story scene renders
+- **Then**: Audio manager plays HOPEFUL theme (path-a.mp3)
+- **And**: Theme continues playing through all Path A scenes (no mid-journey changes)
+- **And**: Theme loops seamlessly for entire 7-10 minute journey
+- **And**: Same theme plays until user reaches ending
 
-#### Scenario: Dimensional scores override audio theme to MELANCHOLIC
-- **Given**: User's accumulated `hope` OR `selfWorth` score falls below -2
-- **When**: User navigates to any scene
-- **Then**: Audio manager overrides to "melancholic" theme
-- **And**: Crossfade to melancholic theme over 2 seconds
-- **And**: Override persists until both scores rise above -2
+#### Scenario: Path B plays REFLECTIVE theme throughout journey
 
-#### Scenario: Audio crossfade between themes
-- **Given**: Audio is playing "reflective" theme at volume 0.7
-- **When**: System requests transition to "melancholic" theme
-- **Then**: "Reflective" theme fades out (0.7 → 0) over 2 seconds
-- **And**: "Melancholic" theme fades in (0 → 0.7) over 2 seconds
-- **And**: Both tracks play simultaneously during crossfade
-- **And**: Old theme stops and unloads after fade completes
+- **Given**: User selects Path B ("Relationship, No Date")
+- **When**: First story scene renders
+- **Then**: Audio manager plays REFLECTIVE theme (path-b.mp3)
+- **And**: Theme continues playing through all Path B scenes
+- **And**: No theme changes occur based on scenes or scores
+- **And**: Creates cohesive sonic identity for Path B journey
 
-### Requirement: Lazy loading and preloading strategy
+#### Scenario: Path C plays MELANCHOLIC theme throughout journey
 
-The system must optimize audio loading to minimize initial load time while ensuring seamless transitions.
+- **Given**: User selects Path C ("No Relationship")
+- **When**: First story scene renders
+- **Then**: Audio manager plays MELANCHOLIC/PEACEFUL theme (path-c.mp3)
+- **And**: Theme continues playing through all Path C scenes
+- **And**: Consistent musical atmosphere supports single-perspective journey
 
-#### Scenario: Initial audio theme loads on consent
-- **Given**: User grants audio consent on Landing screen
-- **When**: Audio manager initializes
-- **Then**: First theme (based on Path A default) preloads immediately
-- **And**: Other themes do not load yet (bandwidth optimization)
-- **And**: Loading happens asynchronously (non-blocking)
+#### Scenario: Audio fades in at journey start
 
-#### Scenario: Next theme preloads during current scene
-- **Given**: User is in Scene A2 with "reflective" theme playing
-- **When**: System detects next scene (A3) uses "melancholic" theme
-- **Then**: "Melancholic" theme begins loading in background
-- **And**: Preload happens during scene reading time (~30-60 seconds)
-- **And**: By time user makes choice, next theme is ready for instant crossfade
+- **Given**: User has consented to audio and selected a path
+- **When**: First story scene begins rendering
+- **Then**: Path-specific theme fades in from volume 0 to user_volume over 2 seconds
+- **And**: Fade-in provides smooth, non-jarring audio introduction
+- **And**: User can immediately mute if they prefer silence
 
-#### Scenario: Theme already loaded when requested
-- **Given**: User previously heard "hopeful" theme in Scene A1
-- **When**: User returns to scene requiring "hopeful" theme later
-- **Then**: System reuses cached audio buffer (no re-download)
-- **And**: Theme begins playing immediately (no loading delay)
+#### Scenario: Audio fades out at journey end
+
+- **Given**: User completes final scene and reaches ending
+- **When**: Ending screen begins rendering
+- **Then**: Current theme fades out from user_volume to 0 over 2 seconds
+- **And**: Fade-out provides graceful conclusion to audio experience
+- **And**: No abrupt audio cuts
+
+### Requirement: Progressive audio loading after path selection
+
+The system SHALL optimize audio loading by downloading only the single theme needed for the user's chosen path, after path selection.
+
+#### Scenario: Audio loads after path selection, not on initial page load
+
+- **Given**: User lands on Landing screen and grants audio consent
+- **When**: User selects a path (A, B, or C)
+- **Then**: System begins loading only that path's audio theme
+- **And**: No audio files load on initial landing (optimizes < 3s initial load target)
+- **And**: Other paths' themes never download (bandwidth optimization)
+- **And**: Loading happens asynchronously during path selection → first scene transition
+
+#### Scenario: Single theme loads for Path A
+
+- **Given**: User selects Path A and audio consent is granted
+- **When**: System transitions from path selection to first story scene
+- **Then**: Only path-a.mp3 (HOPEFUL theme) downloads
+- **And**: path-b.mp3 and path-c.mp3 do not download
+- **And**: ~500KB-1MB download happens in background
+- **And**: By time first scene fully renders, audio is ready to fade in
+
+#### Scenario: Audio plays immediately if already loaded
+
+- **Given**: User revisits experience with same path choice
+- **When**: Browser cache contains path-specific audio file
+- **Then**: System uses cached audio buffer (no re-download)
+- **And**: Theme begins playing immediately on first scene
+- **And**: No loading delay or bandwidth usage
 
 ### Requirement: Audio controls for user control
 
-The system must provide persistent UI controls for muting, unmuting, and volume adjustment.
+The system SHALL provide persistent UI controls for muting, unmuting, and volume adjustment.
 
-#### Scenario: User mutes audio via controls
-- **Given**: Audio is currently playing
+#### Scenario: User mutes audio via prominent toggle
+
+- **Given**: Audio is currently playing (default state after consent)
 - **When**: User clicks mute button in AudioControls component
 - **Then**: Audio fades to volume 0 over 0.5 seconds
 - **And**: Playback pauses (not stops - position preserved)
 - **And**: Mute button icon changes to "unmute" state
 - **And**: Preference saved to localStorage (`audioPreference.enabled: false`)
+- **And**: Toggle is easily accessible (top-right or floating button)
 
 #### Scenario: User unmutes audio via controls
+
 - **Given**: Audio is currently muted
 - **When**: User clicks unmute button in AudioControls component
 - **Then**: Playback resumes from paused position
@@ -135,45 +164,51 @@ The system must provide persistent UI controls for muting, unmuting, and volume 
 - **And**: Preference saved to localStorage (`audioPreference.enabled: true`)
 
 #### Scenario: User adjusts volume (future enhancement)
+
 - **Given**: Audio is playing at volume 0.7
 - **When**: User drags volume slider to 0.4
 - **Then**: Audio volume changes smoothly to 0.4
 - **And**: New volume preference saved to localStorage
 - **And**: Volume persists across page reloads
 
-### Requirement: Audio Analytics Integration
+### Requirement: Audio analytics integration
 
-The system must track audio-related user interactions for experience optimization.
+The system SHALL track audio-related user interactions for experience optimization.
 
 #### Scenario: User enables audio
+
 - **Given**: User checks audio consent checkbox
 - **When**: Audio manager initializes
 - **Then**: Analytics event fires: `audio_enabled`
 - **And**: Event includes no PII (timestamp only)
 
 #### Scenario: User mutes audio
+
 - **Given**: Audio is playing
 - **When**: User clicks mute button
 - **Then**: Analytics event fires: `audio_muted`
 - **And**: Event includes scene_id (understand where users mute)
 
 #### Scenario: User unmutes audio
+
 - **Given**: Audio is muted
 - **When**: User clicks unmute button
 - **Then**: Analytics event fires: `audio_unmuted`
 - **And**: Event includes scene_id (understand engagement patterns)
 
-#### Scenario: Audio theme changes
-- **Given**: Audio system transitions between themes
-- **When**: Crossfade begins
-- **Then**: Analytics event fires: `audio_theme_changed`
-- **And**: Event includes: `previous_theme`, `new_theme`, `trigger` (scene_default | score_override)
+#### Scenario: User starts journey with audio
+
+- **Given**: User consents to audio and selects path
+- **When**: First story scene begins
+- **Then**: Analytics event fires: `audio_journey_started`
+- **And**: Event includes: `path` (A | B | C), `theme` (hopeful | reflective | melancholic)
 
 ### Requirement: Audio error handling
 
-The system must gracefully handle audio loading failures and browser autoplay restrictions.
+The system SHALL gracefully handle audio loading failures and browser autoplay restrictions.
 
 #### Scenario: Audio file fails to load
+
 - **Given**: User has audio enabled
 - **When**: Audio file request returns 404 or network error
 - **Then**: Audio manager logs error to console (non-blocking)
@@ -182,6 +217,7 @@ The system must gracefully handle audio loading failures and browser autoplay re
 - **And**: User can continue journey without music
 
 #### Scenario: Browser blocks autoplay
+
 - **Given**: User is on Safari iOS (strict autoplay policy)
 - **When**: Audio manager attempts to play theme
 - **Then**: Audio manager detects autoplay prevention
@@ -190,6 +226,7 @@ The system must gracefully handle audio loading failures and browser autoplay re
 - **And**: No error shown to user (expected browser behavior)
 
 #### Scenario: Unsupported audio format
+
 - **Given**: User's browser does not support MP3
 - **When**: Audio manager loads theme
 - **Then**: System attempts OGG fallback
@@ -198,9 +235,10 @@ The system must gracefully handle audio loading failures and browser autoplay re
 
 ### Requirement: Audio accessibility
 
-The system must ensure audio features are accessible to all users.
+The system MUST ensure audio features are accessible to all users.
 
 #### Scenario: Screen reader announces audio controls
+
 - **Given**: User navigates with screen reader
 - **When**: Focus moves to audio controls button
 - **Then**: Screen reader announces "Mute audio" or "Unmute audio"
@@ -208,6 +246,7 @@ The system must ensure audio features are accessible to all users.
 - **And**: Button state changes are announced to screen reader
 
 #### Scenario: Keyboard navigation for audio controls
+
 - **Given**: User navigates with keyboard only
 - **When**: User tabs to audio controls
 - **Then**: Focus indicator visibly highlights button

@@ -2,42 +2,68 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Midpoint feedback timing adjusted for 8-scene structure
+### Requirement: Midpoint feedback timing adjusted for variable scene counts
 
-The midpoint feedback system must continue to trigger at Scene 3, which is now approximately 37% through the journey (scene 3 of 8) instead of 60% (scene 3 of 5).
+The midpoint feedback system SHALL trigger at an appropriate midpoint for each path's variable scene count, providing dimensional feedback during the journey.
 
-#### Scenario: User reaches Scene 3 in 8-scene path
-- **Given**: User has completed scenes 1, 2, and 2.5
-- **When**: User enters Scene 3 (tension moment)
+#### Scenario: User reaches midpoint in Path A (8 scenes)
+
+- **Given**: User has completed approximately 4 scenes in Path A
+- **When**: User enters a midpoint scene
 - **Then**: System displays midpoint feedback phrase based on dominant dimension
-- **And**: Feedback appears at ~37% journey progress (earlier than before)
+- **And**: Feedback appears at ~50% journey progress
 - **And**: Feedback logic unchanged (uses `getDominantDimension()` and `getMidpointFeedbackPhrase()`)
+
+#### Scenario: User reaches midpoint in Path B (9 scenes)
+
+- **Given**: User has completed approximately 4-5 scenes in Path B
+- **When**: User enters a midpoint scene
+- **Then**: System displays midpoint feedback phrase
+- **And**: Feedback appears at ~50% journey progress (adjusted for 9-scene path)
+
+#### Scenario: User reaches midpoint in Path C (7 scenes)
+
+- **Given**: User has completed approximately 3-4 scenes in Path C
+- **When**: User enters a midpoint scene
+- **Then**: System displays midpoint feedback phrase
+- **And**: Feedback appears at ~50% journey progress (adjusted for 7-scene path)
 
 ## ADDED Requirements
 
-### Requirement: Audio enhances emotional feedback
+### Requirement: Audio enhances emotional feedback through path-based theme
 
-The audio system provides ambient feedback that reinforces the emotional tone of the user's journey through theme selection.
+The audio system SHALL provide ambient feedback through a consistent path-based theme that reinforces the overall emotional tone of each relationship journey type.
 
-#### Scenario: User's choices lead to high hope scores
-- **Given**: User's accumulated `hope` score exceeds +2
-- **When**: User navigates to next scene
-- **Then**: Audio system transitions to "hopeful" theme (uplifting melody)
-- **And**: Theme reinforces positive emotional feedback without explicit score display
-- **And**: User experiences emotional resonance through music
+#### Scenario: User experiences Path A with HOPEFUL theme
 
-#### Scenario: User's choices lead to low self-worth scores
-- **Given**: User's accumulated `selfWorth` score falls below -2
-- **When**: User navigates to next scene
-- **Then**: Audio system transitions to "melancholic" theme (somber melody)
-- **And**: Theme provides subtle feedback about emotional trajectory
-- **And**: User may reflect on choices without explicit judgment
+- **Given**: User selects Path A ("Relationship & Date")
+- **When**: User progresses through journey
+- **Then**: HOPEFUL audio theme plays consistently throughout all scenes
+- **And**: Theme reinforces balanced relationship journey atmosphere
+- **And**: User experiences cohesive sonic identity for Path A
+
+#### Scenario: User experiences Path B with REFLECTIVE theme
+
+- **Given**: User selects Path B ("Relationship, No Date")
+- **When**: User progresses through journey
+- **Then**: REFLECTIVE audio theme plays consistently throughout all scenes
+- **And**: Theme supports introspective, complex emotional exploration
+- **And**: User experiences contemplative atmosphere for relationship without plans
+
+#### Scenario: User experiences Path C with MELANCHOLIC theme
+
+- **Given**: User selects Path C ("No Relationship")
+- **When**: User progresses through journey
+- **Then**: MELANCHOLIC/PEACEFUL audio theme plays consistently throughout all scenes
+- **And**: Theme supports single-perspective self-reflection
+- **And**: User experiences appropriate emotional atmosphere for solo journey
 
 ### Requirement: Visual feedback through background themes
 
-The visual system provides ambient feedback through background gradient colors that reflect scene emotional tone.
+The visual system SHALL provide ambient feedback through background gradient colors that reflect scene emotional tone.
 
 #### Scenario: User experiences hopeful romantic scene
+
 - **Given**: Scene narrative explores hope and connection
 - **When**: Scene renders with WARM background theme
 - **Then**: Pink/orange/gold gradients create warm, optimistic atmosphere
@@ -45,6 +71,7 @@ The visual system provides ambient feedback through background gradient colors t
 - **And**: User perceives subtle encouragement through color psychology
 
 #### Scenario: User experiences tense uncertain scene
+
 - **Given**: Scene narrative explores conflict or doubt
 - **When**: Scene renders with NEUTRAL background theme
 - **Then**: Gray/beige/muted gradients create uncertain atmosphere
@@ -53,9 +80,10 @@ The visual system provides ambient feedback through background gradient colors t
 
 ### Requirement: Particle effects provide emotional ambiance
 
-The visual system renders particle effects that subtly reinforce the emotional tone of scenes.
+The visual system SHALL render particle effects that subtly reinforce the emotional tone of scenes.
 
 #### Scenario: Scene has romantic hopeful tone
+
 - **Given**: Scene explores love, connection, or optimism
 - **When**: Scene specifies "hearts" particle type
 - **Then**: 10-30 heart shapes float upward slowly across screen
@@ -63,6 +91,7 @@ The visual system renders particle effects that subtly reinforce the emotional t
 - **And**: Effect is decorative, not distracting from narrative text
 
 #### Scenario: Scene has reflective introspective tone
+
 - **Given**: Scene explores self-reflection or contemplation
 - **When**: Scene specifies "bubbles" particle type
 - **Then**: 10-30 translucent bubbles rise gently across screen
@@ -70,6 +99,7 @@ The visual system renders particle effects that subtly reinforce the emotional t
 - **And**: Effect supports meditative reading experience
 
 #### Scenario: Scene has intense emotional moment
+
 - **Given**: Scene narrative is emotionally heavy or conflicted
 - **When**: Scene specifies "none" particle type
 - **Then**: No particles render on screen
