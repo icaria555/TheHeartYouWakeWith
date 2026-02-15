@@ -11,28 +11,23 @@ interface ShareCardProps {
 
 export const ShareCard: React.FC<ShareCardProps> = ({ onClose, resultMessage }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const resultCardRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSave = async () => {
-    if (!cardRef.current) return;
+    if (!resultCardRef.current) return;
 
     try {
       setIsGenerating(true);
 
-      // Generate canvas from the card element
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#ffffff",
-        scale: 2, // Higher quality (2x resolution)
-        logging: false,
-        useCORS: true, // Allow cross-origin images
-        allowTaint: true,
-        foreignObjectRendering: true, // Use SVG rendering to bypass CSS parsing issues
-      });
+      const canvas = await generateCanvas();
+      if (!canvas) return;
 
       // Convert canvas to blob
       canvas.toBlob((blob) => {
         if (!blob) {
-          console.error("Failed to generate image");
+          console.error("Failed to generate image blob");
+          alert("Failed to generate image. Please try again.");
           return;
         }
 
@@ -40,19 +35,125 @@ export const ShareCard: React.FC<ShareCardProps> = ({ onClose, resultMessage }) 
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         const timestamp = new Date().toISOString().slice(0, 10);
-        link.download = `heart-you-wake-with-${resultMessage}-${timestamp}.png`;
+        link.download = `heart-you-wake-with-${resultMessage.replace(/\s+/g, "-")}-${timestamp}.png`;
         link.href = url;
         link.click();
 
         // Cleanup
         URL.revokeObjectURL(url);
+        console.log("Image saved successfully");
       }, "image/png");
     } catch (error) {
       console.error("Error generating image:", error);
-      alert("Failed to save image. Please try again.");
+      alert(`Failed to save image: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleShare = async () => {
+    if (!resultCardRef.current) return;
+
+    try {
+      setIsGenerating(true);
+
+      const canvas = await generateCanvas();
+      if (!canvas) return;
+
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          console.error("Failed to generate image blob");
+          alert("Failed to generate image. Please try again.");
+          return;
+        }
+
+        // Check if Web Share API is available
+        if (navigator.share && navigator.canShare) {
+          const file = new File(
+            [blob],
+            `heart-you-wake-with-${resultMessage.replace(/\s+/g, "-")}.png`,
+            {
+              type: "image/png",
+            },
+          );
+
+          const shareData = {
+            title: "The Heart You Wake With",
+            text: `My result: ${resultMessage}`,
+            files: [file],
+          };
+
+          if (navigator.canShare(shareData)) {
+            try {
+              await navigator.share(shareData);
+              console.log("Shared successfully");
+            } catch (error) {
+              if (error instanceof Error && error.name !== "AbortError") {
+                console.error("Error sharing:", error);
+                alert("Failed to share. Please try saving instead.");
+              }
+            }
+          } else {
+            alert(
+              "Sharing images is not supported on this device. Please use the Save button instead.",
+            );
+          }
+        } else {
+          alert("Sharing is not supported on this browser. Please use the Save button instead.");
+        }
+      }, "image/png");
+    } catch (error) {
+      console.error("Error generating image:", error);
+      alert(`Failed to share image: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateCanvas = async () => {
+    if (!resultCardRef.current) return null;
+
+    // Create a temporary container at position 0,0 to avoid positioning issues
+    const tempContainer = document.createElement("div");
+    tempContainer.style.position = "fixed";
+    tempContainer.style.top = "0";
+    tempContainer.style.left = "0";
+    tempContainer.style.width = "400px";
+    tempContainer.style.zIndex = "-1";
+    tempContainer.style.pointerEvents = "none";
+    tempContainer.style.borderRadius = "1rem"; // rounded-2xl = 1rem
+    tempContainer.style.overflow = "hidden";
+    document.body.appendChild(tempContainer);
+
+    // Clone the ResultCard into the temp container
+    const originalElement = resultCardRef.current;
+    const clonedElement = originalElement.cloneNode(true) as HTMLElement;
+    clonedElement.style.borderRadius = "1rem"; // rounded-2xl
+    clonedElement.style.overflow = "hidden";
+    tempContainer.appendChild(clonedElement);
+
+    // Wait for rendering
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    console.log("Capturing element at 0,0");
+
+    // Generate canvas from the cloned element
+    const canvas = await html2canvas(clonedElement, {
+      backgroundColor: null,
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+      foreignObjectRendering: true,
+    });
+
+    console.log("Canvas generated successfully:", canvas.width, "x", canvas.height);
+
+    // Remove temporary container
+    document.body.removeChild(tempContainer);
+
+    return canvas;
   };
 
   return (
@@ -68,8 +169,13 @@ export const ShareCard: React.FC<ShareCardProps> = ({ onClose, resultMessage }) 
         </button>
 
         {/* The Card */}
-        <div ref={cardRef} className="w-full shadow-2xl rounded-2xl overflow-hidden mb-6">
-          <ResultCard resultKey={resultMessage} />
+        <div
+          ref={cardRef}
+          className="w-full max-w-[400px] shadow-2xl rounded-2xl overflow-hidden mb-6"
+        >
+          <div ref={resultCardRef}>
+            <ResultCard resultKey={resultMessage} />
+          </div>
         </div>
 
         {/* Actions */}
@@ -82,6 +188,15 @@ export const ShareCard: React.FC<ShareCardProps> = ({ onClose, resultMessage }) 
           >
             <Download className="w-4 h-4" />
             {isGenerating ? "Generating..." : "Save"}
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1 gap-2 bg-white text-black hover:bg-gray-100 border-none"
+            onClick={handleShare}
+            disabled={isGenerating}
+          >
+            <Share2 className="w-4 h-4" />
+            Share
           </Button>
         </div>
       </div>
