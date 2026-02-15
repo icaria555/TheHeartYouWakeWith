@@ -157,4 +157,3 @@ PERFORMANCE OF THIS SOFTWARE.
           animation: fadeInOut 5s ease-in-out;
         }
       `})]})}uQ.createRoot(document.getElementById("root")).render(m.jsx(v2,{}));
-//# sourceMappingURL=index-C5YZDGlO.js.map
