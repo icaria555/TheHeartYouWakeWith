@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://theheartyouwakewith.com/sitemap.xml
+Sitemap: https://valentineday.iceeworld.com/sitemap.xml
